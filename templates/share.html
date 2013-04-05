@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html style="width: 100%;height: 100%;">
+<head>
+    <title>Pusher Test</title>
+</head>
+<body style="width: 99%;height: 98%;">
+{% if not file_data and not key %}
+    <form method="post" action="{% url 'sharing.views.share_file' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="shared_file" />
+        <input type="submit" />
+        {% if key %}
+            <input type="hidden" name="key" value="{{ key }}" />
+        {% endif %}
+    </form>
+{% endif %}
+{% if key %}
+    <h2><a href="{{ SITE_PATH }}/?key={{ key }}">{{ SITE_PATH }}/?key={{ key }}</a></h2>
+    <input type="hidden" name="key" value="{{ key }}" />
+{% endif %}
+<textarea id="screen" wrap="off" style="width: 99%;height: 90%;">{% if file_data %}{{ file_data }}{% endif %}</textarea>
+<script src='http://code.jquery.com/jquery-latest.min.js' type='text/javascript'></script>
+<script src="http://js.pusher.com/2.0/pusher.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+    WEB_SOCKET_DEBUG = true;
+    function getURLParameter(name) {
+        return decodeURI(
+                (RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]
+        );
+    }
+    function sendData(channel) {
+        var data = {'shared_file': $('textarea').val()};
+        channel.trigger('client-changed_data', data)
+    }
+    function setCursorPosition(pos) {
+        if ($('textarea').get(0).setSelectionRange) {
+            $('textarea').get(0).setSelectionRange(pos, pos);
+        } else if ($('textarea').get(0).createTextRange) {
+            var range = $('textarea').get(0).createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', pos);
+            range.moveStart('character', pos);
+            range.select();
+        }
+    }
+    // Enable pusher logging - don't include this in production
+    //Pusher.log = function(message) {
+    //    if (window.console && window.console.log) window.console.log(message);
+    //};
+
+    // Flash fallback logging - don't include this in production
+    WEB_SOCKET_DEBUG = true;
+    var channelString = "private-"+{% if key %}"{{ key }}"{% else %}getURLParameter('key'){% endif %};
+    var pusher = new Pusher('1e8d4ee59972e24f6029');
+    var channel = pusher.subscribe(channelString);
+    $(function(){
+        channel.bind('client-request_data', function(data) {
+            sendData(channel);
+        });
+        channel.bind('client-changed_data', function(data) {
+            var current = 0;
+            if ($('textarea')[0].selectionStart != null)
+                current = $('textarea')[0].selectionStart;
+            $('textarea').val(data.shared_file);
+            setCursorPosition(current);
+
+        });
+       if ($('#screen').val() === "") {
+           setTimeout(function(){
+               channel.trigger('client-request_data', {});
+           }, 300);
+       }
+        $('#screen').bind('keyup', function() {
+            sendData(channel);
+        });
+    });
+</script>
+</body>
+</html>
