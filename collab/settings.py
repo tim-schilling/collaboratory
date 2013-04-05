@@ -1,5 +1,5 @@
 # Django settings for collab project.
-import os.path
+import os
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 
 DEBUG = True
@@ -12,11 +12,14 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
-SECRET_KEY = ''
+try:
+    SECRET_KEY = os.environ['SECRET_KEY']
 
-PUSHER_API_ID = ''
-PUSHER_KEY = ''
-PUSHER_SECRET_KEY = ''
+    PUSHER_API_ID = os.environ['PUSHER_API_ID']
+    PUSHER_KEY = os.environ['PUSHER_KEY']
+    PUSHER_SECRET_KEY = os.environ['PUSHER_SECRET_KEY']
+except KeyError:
+    pass
 
 ###############################################################################
 # pusher settings
