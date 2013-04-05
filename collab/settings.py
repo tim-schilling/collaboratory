@@ -5,7 +5,7 @@ PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
-SITE_PATH = "http://127.0.0.1:8000"
+SITE_PATH = "http://blooming-river-1196.herokuapp.com"
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
